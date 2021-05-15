@@ -1,0 +1,64 @@
+let puppeteer =  require("puppeteer");
+
+let search = "";
+console.log(process.argv.length);
+for(let i = 2 ; i < process.argv.length ; i++){
+    search += process.argv[i] + " ";
+}
+
+(async function () {
+    let browser = await puppeteer.launch({
+    headless: false,
+    defaultViewport: null,
+    args: ["--start-maximized"],
+   // executablePath : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+  });
+  let pages = await browser.pages();
+  let tab = pages[0];
+  pg = tab;
+  await tab.goto("https://www.youtube.com");
+  await tab.click("[name = 'search_query']");
+  await tab.type("[name = 'search_query']",search);
+  await tab.waitForTimeout(2000);
+  await tab.keyboard.press("Enter");
+  await tab.waitForTimeout(7000)
+  let video_Links = await tab.evaluate((elem)=>{
+      let aTag = document.querySelectorAll("#content .style-scope.ytd-item-section-renderer a#thumbnail");
+      let href = [];
+      for(let i = 0 ; i < aTag.length ; i++){
+        href[i] = "http://www.youtube.com"+aTag[i].getAttribute('href');
+        
+        console.log(href[i]);
+    }
+    console.log(href.length);
+    elem = href;
+    return elem;
+  })
+
+  for(let i = 0 ; i < 5 ; i++){
+
+    let newTab = await browser.newPage();
+    await downloadVideo(video_Links[i],newTab,browser);
+
+  }
+  
+})();
+
+async function downloadVideo(href,nPage,br){
+    
+    (async function (){
+        console.log(href);
+        await nPage.goto('https://en.savefrom.net/20/');
+        await nPage.click("[type='text']");
+        await nPage.type("[type='text']",href);
+        await nPage.waitForTimeout(2000);
+        await nPage.click("[type='submit']");
+        await nPage.waitForTimeout(3000);
+        await nPage.click('.def-btn-box');
+        await nPage.waitForTimeout(2000);
+        await nPage.close();
+    })();
+    
+    
+
+}
